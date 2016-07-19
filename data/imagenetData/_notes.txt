@@ -1,0 +1,31 @@
+Synsets used:
+
+cars:
+	Used-car, secondhand car
+
+cats:
+	Kitty, kitty-cat, puss, pussy, pussycat
+
+dogs:
+	Dog, domestic dog, Canis familiaris
+
+stoller:
+	Baby buggy, baby carriage, carriage, perambulator, pram, stroller, go-cart, pushchair, pusher
+
+microwaves:
+	Microwave, microwave oven
+
+guitar:
+	Guitar
+
+keyboard:
+	Keyboard instrument
+
+shoe:
+	Shoe
+
+golf:
+	Golf equipment
+
+bike:
+	Bicycle, bike, wheel, cycle
