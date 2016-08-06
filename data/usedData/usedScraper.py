@@ -178,3 +178,15 @@ for i in range(0, 6):
 			except:
 				print "https://s3-us-west-2.amazonaws.com/usedphotosna/"+str(photo_id)+"_614.jpg"
 				continue
+
+if len(images):
+	with open('./data/images'+str(file_count)+'.dat', 'wb') as f:
+		np.save(f,np.asarray(images))
+
+	with open('./data/labels'+str(file_count)+'.dat', 'wb') as f:
+		np.save(f,np.asarray(labels))
+
+	file_count = file_count + 1
+
+	labels = []
+	images = []
