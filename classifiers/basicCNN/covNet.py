@@ -57,11 +57,13 @@ class covnet:
 
 		#if test iteration create test set
 		if test:
+			print "Creating Testing Split"
 			for i in range(0, length):
 				self.test_data[0].append(imageset[i])
 				self.test_data[1].append(labelset[i])
 			np.save('covnet_test_file', self.test_data)
 		else:
+			print "Creating Training Split"
 			for i in range(0, length):
 				self.training_data[0].append(imageset[i])
 				self.training_data[1].append(labelset[i])
@@ -121,6 +123,7 @@ class covnet:
 
 		#If the test flag is shown test the covnet with the current test set
 		if test:
+			print "Testing " + str(num_test_batches) + " inputs"
 			test_accuracy_array = [test_mb_accuracy(j) for j in xrange(num_test_batches)]
 			test_accuracy = np.mean([pair[0] for pair in test_accuracy_array])
 
@@ -132,6 +135,7 @@ class covnet:
 		#Else train the network
 		else:
 			for epoch in xrange(epochs):
+				print "Running epoch #"+str(epoch)+" of "+ str(epochs)
 				for minibatch_index in xrange(num_training_batches):
 					iteration = num_training_batches*epoch+minibatch_index
 					if iteration % 1000 == 0:
@@ -284,16 +288,16 @@ covnet = covnet([
 					stride_length=(1,1),
 					filter_shape=(20, 3, 75, 75), 
 					poolsize=(2, 2)),
-    FullyConnectedLayer(n_in=20, 270, 193, n_out=100),
-    SoftmaxLayer(n_in=100, n_out=10)], 
-    mini_batch_size)
+	FullyConnectedLayer(n_in=(20*270*193), n_out=100),
+	SoftmaxLayer(n_in=100, n_out=10)], 
+	mini_batch_size)
 
 
 print "Start training Covnet"
 for i in range(0,1):	
 	covnet.create_splits(
-		label_folder="/home/mclaren1/seng/LSIRProject/classifiers/basicDNN/data/usedData/label_folder/",
-		image_folder="/home/mclaren1/seng/LSIRProject/classifiers/basicDNN/data/usedData/data_folder/",
+		label_folder="../basicDNN/data/usedData/label_folder/",
+		image_folder="../basicDNN/data/usedData/data_folder/",
 		ext=".dat",
 		iteration=i,
 		test=False
@@ -306,8 +310,8 @@ np.save('covnet_params_'+str(i), covnet.params)
 
 #Create Test Split
 covnet.create_splits(
-	label_folder="/home/mclaren1/seng/LSIRProject/classifiers/basicDNN/data/usedData/label_folder/",
-	image_folder="/home/mclaren1/seng/LSIRProject/classifiers/basicDNN/data/usedData/data_folder/",
+	label_folder="../basicDNN/data/usedData/label_folder/",
+	image_folder="../basicDNN/data/usedData/data_folder/",
 	ext=".dat",
 	iteration=(i+1),
 	test=True
