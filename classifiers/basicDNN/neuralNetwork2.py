@@ -73,7 +73,7 @@ class covnet:
 			self.validation_data[0].append(imageset[i])
 			self.validation_data[1].append(labelset[i])
 
-		outfile = open("test_set_"+str(iteration)+".dat", "wb")
+		outfile = open("2_test_set_"+str(iteration)+".dat", "wb")
 		cPickle.dump(self.test_data, outfile)
 		outfile.close()
 
@@ -335,7 +335,7 @@ covnet = covnet([
 
 print "Starting Covnet"
 for i in range(0,8):	
-	np.save('params_'+str(i), covnet.params)
+	np.save('2_params_'+str(i), covnet.params)
 	print "training on file" + str(i)
 
 	print "Creating Splits"
