@@ -52,40 +52,28 @@ class covnet:
 		self.output = self.layers[-1].output
 		self.output_dropout = self.layers[-1].output_dropout
 
-	def _convert_string(self, category):
-		categories = ["bike", "cat", "car", "shoe", "golf"]
-		return categories.index(category)
-
-	#Create random splits
-	def _split_sets(self, dataset):
-		#Randomly shuffle dataset
-		shuffle(dataset)
+	def create_splits(self, label_folder, image_folder, ext, iteration):
+		imageset = np.load(image_folder+"images"+str(iteration)+ext)
+		labelset = np.load(label_folder+"labels"+str(iteration)+ext)
 
 		# Create splits
-		length = len(dataset)
-		__training_split		= dataset[0:int(length*0.8)]
-		__test_split			= dataset[int(length*0.8):int(length*0.9)]
-		__validation_split		= dataset[int(length*0.9):length]
+		length = len(labelset)
 
 		__training_data, __test_data, __validation_data = [[],[]],[[],[]],[[],[]]
 
-		for instance in __training_split:
-			__training_data[0].append(instance["image"])
-			__training_data[1].append(self._convert_string(instance["category"]))
+		for i in range(0, int(length*0.8)):
+			__training_data[0].append(imageset[i])
+			__training_data[1].append(labelset[i])
 
-		for instance in __test_split:
-			__test_data[0].append(instance["image"])
-			__test_data[1].append(self._convert_string(instance["category"]))
+		for i in range(int(length*0.8), int(length*0.9)):
+			__test_data[0].append(imageset[i])
+			__test_data[1].append(labelset[i])
 
-		for instance in __validation_split:
-			__validation_data[0].append(instance["image"])
-			__validation_data[1].append(self._convert_string(instance["category"]))
+		for i in range(int(length*0.9), length):
+			__validation_data[0].append(imageset[i])
+			__validation_data[1].append(labelset[i])
 
-		outfile = open("validation_set.dat", "wb")
-		cPickle.dump(__validation_data, outfile)
-		outfile.close()
-
-		outfile = open("test_set.dat", "wb")
+		outfile = open("test_set_"+str(iteration)+".dat", "wb")
 		cPickle.dump(__test_data, outfile)
 		outfile.close()
 
@@ -97,13 +85,8 @@ class covnet:
 			return shared_x, T.cast(shared_y, "int32")
 
 		#Return splits
-		return shared(__training_data), shared(__test_data), shared(__validation_data)
+		self.training_data, self.test_data, self.validation_data = shared(__training_data), shared(__test_data), shared(__validation_data)
 
-	def create_splits(self, filename="./dataset.dat"):
-
-		f = open(filename, 'rb')
-		dataset = cPickle.load(f)
-		self.training_data, self.test_data, self.validation_data = self._split_sets(dataset)
 		f.close()
 
 	#Train network using mini-batch gradient descent
@@ -208,7 +191,7 @@ class ConvPoolLayer(object):
 
 	"""
 
-	def __init__(self, filter_shape, image_shape, poolsize=(2, 2),
+	def __init__(self, filter_shape, image_shape, poolsize=(2, 2), stride_length=(1,1),
 				 activation_fn=sigmoid):
 		"""`filter_shape` is a tuple of length 4, whose entries are the number
 		of filters, the number of input feature maps, the filter height, and the
@@ -227,6 +210,7 @@ class ConvPoolLayer(object):
 		self.image_shape 	= image_shape
 		self.poolsize 		= poolsize
 		self.activation_fn	= activation_fn
+		self.stride_length	= stride_length
 		
 		# initialize weights and biases
 		n_out = (filter_shape[0]*np.prod(filter_shape[2:])/np.prod(poolsize))
@@ -244,8 +228,10 @@ class ConvPoolLayer(object):
 
 	def set_inpt(self, inpt, inpt_dropout, mini_batch_size):
 		self.inpt = inpt.reshape(self.image_shape)
+
+		# Subsampling by (1,3) for the RGB values
 		conv_out = conv.conv2d(
-			input=self.inpt, filters=self.w, filter_shape=self.filter_shape,
+			input=self.inpt, filters=self.w, subsample=self.stride_length, filter_shape=self.filter_shape,
 			image_shape=self.image_shape)
 		pooled_out = downsample.max_pool_2d(
 			input=conv_out, ds=self.poolsize, ignore_border=True)
@@ -328,19 +314,38 @@ def dropout_layer(layer, p_dropout):
 	mask = srng.binomial(n=1, p=1-p_dropout, size=layer.shape)
 	return layer*T.cast(mask, theano.config.floatX)
 
+
+'''
+DEFINE THE DEEP NEURAL NETWORK
+'''
 mini_batch_size = 100
 
 covnet = covnet([
-	ConvPoolLayer(image_shape=(mini_batch_size, 1, 114, 114), 
-				  filter_shape=(40, 1, 5, 5),
-				  poolsize=(5, 5)),
-	FullyConnectedLayer(n_in=40*22*22, n_out=100),
-	SoftmaxLayer(n_in=100, n_out=5)], mini_batch_size)
+	ConvPoolLayer(image_shape=(mini_batch_size, 1, 614, 460),
+					stride_length=(1,3),
+					filter_shape=(20, 1, 75, 75), 
+					poolsize=(2, 2)),
+    ConvPoolLayer(image_shape=(mini_batch_size, 20, 270, 193), 
+					filter_shape=(40, 20, 50, 50), 
+					poolsize=(2, 2)),
+    ConvPoolLayer(image_shape=(mini_batch_size, 40, 110, 72), 
+					filter_shape=(60, 40, 25, 25), 
+					poolsize=(2, 2)),
+    FullyConnectedLayer(n_in=60*43*24, n_out=100),
+    SoftmaxLayer(n_in=100, n_out=10)], 
+    mini_batch_size)
 
 print "Starting Covnet"
+for i in range(0,8):	
+	print "training on file" + str(i)
 
-print "Creating Splits"
-covnet.create_splits()
+	print "Creating Splits"
+	covnet.create_splits(
+		label_folder="./data/usedData/label_folder/",
+		image_folder="./data/usedData/data_folder/",
+		ext=".dat",
+		iteration=i
+	)
 
-print "Start training"
-covnet.SGD(60, mini_batch_size, 0.1)  
+	print "Start training"
+	covnet.SGD(60, mini_batch_size, 0.1)  
