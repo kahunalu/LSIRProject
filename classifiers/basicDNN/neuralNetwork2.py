@@ -334,14 +334,14 @@ covnet = covnet([
     mini_batch_size)
 
 print "Starting Covnet"
-for i in range(0,7):	
+for i in range(0,8):	
 	np.save('params_'+str(i), covnet.params)
 	print "training on file" + str(i)
 
 	print "Creating Splits"
 	covnet.create_splits(
-		label_folder="./data/usedData/label_folder/",
-		image_folder="./data/usedData/data_folder/",
+		label_folder="/home/mclaren1/seng/LSIRProject/classifiers/basicDNN/data/imagenetData/label_folder/",
+		image_folder="/home/mclaren1/seng/LSIRProject/classifiers/basicDNN/data/imagenetData/data_folder/",
 		ext=".dat",
 		iteration=i
 	)
