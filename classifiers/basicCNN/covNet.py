@@ -84,10 +84,6 @@ class covnet:
 		training_x, training_y 		= self.training_data
 		test_x, test_y 				= self.test_data
 
-		# compute number of minibatches for training, validation and testing
-		num_training_batches	= size(training_x)/mini_batch_size
-		num_test_batches		= size(test_x)
-
 		# define the (regularized) cost function, symbolic gradients, and updates
 		l2_norm_squared = sum([(layer.w**2).sum() for layer in self.layers])
 		cost = self.layers[-1].cost(self)+\
@@ -102,6 +98,8 @@ class covnet:
 
 		#If the test flag is shown test the covnet with the current test set
 		if test:
+			num_test_batches		= size(test_x)
+			
 			#Test theano function
 			test_mb_accuracy = theano.function(
 				[i], self.layers[-1].accuracy(self.y),
@@ -123,6 +121,8 @@ class covnet:
 
 		#Else train the network
 		else:
+			num_training_batches	= size(training_x)/mini_batch_size
+			
 			#Train theano function
 			train_mb = theano.function(
 				[i], cost, updates=updates,
