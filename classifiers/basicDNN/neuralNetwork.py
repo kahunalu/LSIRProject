@@ -59,22 +59,22 @@ class covnet:
 		# Create splits
 		length = len(labelset)
 
-		__training_data, __test_data, __validation_data = [[],[]],[[],[]],[[],[]]
+		self.training_data, self.test_data, self.validation_data = [[],[]],[[],[]],[[],[]]
 
 		for i in range(0, int(length*0.8)):
-			__training_data[0].append(imageset[i])
-			__training_data[1].append(labelset[i])
+			self.training_data[0].append(imageset[i])
+			self.training_data[1].append(labelset[i])
 
 		for i in range(int(length*0.8), int(length*0.9)):
-			__test_data[0].append(imageset[i])
-			__test_data[1].append(labelset[i])
+			self.test_data[0].append(imageset[i])
+			self.test_data[1].append(labelset[i])
 
 		for i in range(int(length*0.9), length):
-			__validation_data[0].append(imageset[i])
-			__validation_data[1].append(labelset[i])
+			self.validation_data[0].append(imageset[i])
+			self.validation_data[1].append(labelset[i])
 
 		outfile = open("test_set_"+str(iteration)+".dat", "wb")
-		cPickle.dump(__test_data, outfile)
+		cPickle.dump(self.test_data, outfile)
 		outfile.close()
 
 		def shared(data):
@@ -85,9 +85,7 @@ class covnet:
 			return shared_x, T.cast(shared_y, "int32")
 
 		#Return splits
-		self.training_data, self.test_data, self.validation_data = shared(__training_data), shared(__test_data), shared(__validation_data)
-
-		f.close()
+		self.training_data, self.test_data, self.validation_data = shared(self.training_data), shared(self.test_data), shared(self.validation_data)
 
 	#Train network using mini-batch gradient descent
 	def SGD(self, epochs, mini_batch_size, eta, lmbda=0.0):
@@ -321,9 +319,9 @@ DEFINE THE DEEP NEURAL NETWORK
 mini_batch_size = 100
 
 covnet = covnet([
-	ConvPoolLayer(image_shape=(mini_batch_size, 1, 614, 460),
-					stride_length=(1,3),
-					filter_shape=(20, 1, 75, 75), 
+	ConvPoolLayer(image_shape=(mini_batch_size, 3, 614, 460),
+					stride_length=(1,1),
+					filter_shape=(20, 3, 75, 75), 
 					poolsize=(2, 2)),
     ConvPoolLayer(image_shape=(mini_batch_size, 20, 270, 193), 
 					filter_shape=(40, 20, 50, 50), 
@@ -336,7 +334,8 @@ covnet = covnet([
     mini_batch_size)
 
 print "Starting Covnet"
-for i in range(0,8):	
+for i in range(0,7):	
+	np.save('params_'+str(i), covnet.params)
 	print "training on file" + str(i)
 
 	print "Creating Splits"
