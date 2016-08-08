@@ -17,8 +17,7 @@ from theano.tensor.signal import downsample
 def linear(z): return z
 def ReLU(z): return T.maximum(0.0, z)
 
-from theano.tensor.nnet import sigmoid
-from theano.tensor import tanh
+from theano.tensor.nnet import hard_sigmoid
 
 final_prediction = []
 
@@ -190,7 +189,7 @@ class ConvPoolLayer(object):
 	"""
 
 	def __init__(self, filter_shape, image_shape, poolsize=(2, 2), stride_length=(1,1),
-				 activation_fn=sigmoid):
+				 activation_fn=hard_sigmoid):
 		"""`filter_shape` is a tuple of length 4, whose entries are the number
 		of filters, the number of input feature maps, the filter height, and the
 		filter width.
@@ -239,7 +238,7 @@ class ConvPoolLayer(object):
 
 class FullyConnectedLayer(object):
 
-	def __init__(self, n_in, n_out, activation_fn=sigmoid, p_dropout=0.0):
+	def __init__(self, n_in, n_out, activation_fn=hard_sigmoid, p_dropout=0.0):
 		self.n_in = n_in
 		self.n_out = n_out
 		self.activation_fn = activation_fn
