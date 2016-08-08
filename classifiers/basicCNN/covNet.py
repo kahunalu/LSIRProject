@@ -80,24 +80,14 @@ class covnet:
 	#Train network using mini-batch gradient descent
 	def SGD(self, epochs, mini_batch_size, eta, lmbda=0.0, test=False):
 
-		# Split sets into x and y aka. images and categories
-		training_x, training_y 		= self.training_data
-		test_x, test_y 				= self.test_data
-
-		# define the (regularized) cost function, symbolic gradients, and updates
-		l2_norm_squared = sum([(layer.w**2).sum() for layer in self.layers])
-		cost = self.layers[-1].cost(self)+\
-			   0.5*lmbda*l2_norm_squared/num_training_batches
-		grads = T.grad(cost, self.params)
-		updates = [(param, param-eta*grad)
-				   for param, grad in zip(self.params, grads)]
-
 		# define functions to train a mini-batch, and to compute the
 		# accuracy in validation and test mini-batches.
 		i = T.lscalar() # mini-batch index
 
 		#If the test flag is shown test the covnet with the current test set
 		if test:
+			test_x, test_y 				= self.test_data
+			
 			num_test_batches		= size(test_x)
 			
 			#Test theano function
@@ -121,7 +111,17 @@ class covnet:
 
 		#Else train the network
 		else:
+			training_x, training_y 		= self.training_data
+			
 			num_training_batches	= size(training_x)/mini_batch_size
+
+			# define the (regularized) cost function, symbolic gradients, and updates
+			l2_norm_squared = sum([(layer.w**2).sum() for layer in self.layers])
+			cost = self.layers[-1].cost(self)+\
+				   0.5*lmbda*l2_norm_squared/num_training_batches
+			grads = T.grad(cost, self.params)
+			updates = [(param, param-eta*grad)
+					   for param, grad in zip(self.params, grads)]
 			
 			#Train theano function
 			train_mb = theano.function(
