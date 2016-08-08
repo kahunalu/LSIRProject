@@ -72,7 +72,7 @@ class covnet:
 			self.validation_data[0].append(imageset[i])
 			self.validation_data[1].append(labelset[i])
 
-		outfile = open("test_set_"+str(iteration)+".dat", "wb")
+		outfile = open("covnet_test_set_"+str(iteration)+".dat", "wb")
 		cPickle.dump(self.test_data, outfile)
 		outfile.close()
 
