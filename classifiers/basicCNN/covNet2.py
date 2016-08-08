@@ -1,7 +1,5 @@
 # Python Libraries
-import cPickle
 import math
-from random import shuffle
 
 # Third-party libraries
 import numpy as np
@@ -19,8 +17,6 @@ def ReLU(z): return T.maximum(0.0, z)
 
 from theano.tensor.nnet import hard_sigmoid
 
-final_prediction = []
-
 #Covnet
 class covnet:
 	def __init__(self, layers, mini_batch_size):
@@ -28,7 +24,6 @@ class covnet:
 		# Splits
 		self.training_data		= []
 		self.test_data			= []
-		self.validation_data	= []
 
 		# Network Architecture
 		self.layers				= layers
@@ -51,30 +46,25 @@ class covnet:
 		self.output = self.layers[-1].output
 		self.output_dropout = self.layers[-1].output_dropout
 
-	def create_splits(self, label_folder, image_folder, ext, iteration):
+	def create_splits(self, label_folder, image_folder, ext, iteration, test):
 		imageset = np.load(image_folder+"images"+str(iteration)+ext)
 		labelset = np.load(label_folder+"labels"+str(iteration)+ext)
 
 		# Create splits
 		length = len(labelset)
 
-		self.training_data, self.test_data, self.validation_data = [[],[]],[[],[]],[[],[]]
+		self.training_data, self.test_data = [[],[]],[[],[]]
 
-		for i in range(0, int(length*0.8)):
-			self.training_data[0].append(imageset[i])
-			self.training_data[1].append(labelset[i])
-
-		for i in range(int(length*0.8), int(length*0.9)):
-			self.test_data[0].append(imageset[i])
-			self.test_data[1].append(labelset[i])
-
-		for i in range(int(length*0.9), length):
-			self.validation_data[0].append(imageset[i])
-			self.validation_data[1].append(labelset[i])
-
-		outfile = open("covnet2_test_set_"+str(iteration)+".dat", "wb")
-		cPickle.dump(self.test_data, outfile)
-		outfile.close()
+		#if test iteration create test set
+		if test:
+			for i in range(0, length):
+				self.test_data[0].append(imageset[i])
+				self.test_data[1].append(labelset[i])
+			np.save('covnet_test_file', self.test_data)
+		else:
+			for i in range(0, length):
+				self.training_data[0].append(imageset[i])
+				self.training_data[1].append(labelset[i])
 
 		def shared(data):
 			shared_x = theano.shared(
@@ -84,20 +74,18 @@ class covnet:
 			return shared_x, T.cast(shared_y, "int32")
 
 		#Return splits
-		self.training_data, self.test_data, self.validation_data = shared(self.training_data), shared(self.test_data), shared(self.validation_data)
+		self.training_data, self.test_data = shared(self.training_data), shared(self.test_data)
 
 	#Train network using mini-batch gradient descent
-	def SGD(self, epochs, mini_batch_size, eta, lmbda=0.0):
+	def SGD(self, epochs, mini_batch_size, eta, lmbda=0.0, test=False):
 
 		# Split sets into x and y aka. images and categories
 		training_x, training_y 		= self.training_data
-		validation_x, validation_y 	= self.validation_data
 		test_x, test_y 				= self.test_data
 
 		# compute number of minibatches for training, validation and testing
 		num_training_batches	= size(training_x)/mini_batch_size
-		num_validation_batches 	= size(validation_x)/mini_batch_size
-		num_test_batches		= size(test_x)/mini_batch_size
+		num_test_batches		= size(test_x)
 
 		# define the (regularized) cost function, symbolic gradients, and updates
 		l2_norm_squared = sum([(layer.w**2).sum() for layer in self.layers])
@@ -110,6 +98,8 @@ class covnet:
 		# define functions to train a mini-batch, and to compute the
 		# accuracy in validation and test mini-batches.
 		i = T.lscalar() # mini-batch index
+
+		#Train theano function
 		train_mb = theano.function(
 			[i], cost, updates=updates,
 			givens={
@@ -118,14 +108,8 @@ class covnet:
 				self.y:
 				training_y[i*self.mini_batch_size: (i+1)*self.mini_batch_size]
 			})
-		validate_mb_accuracy = theano.function(
-			[i], self.layers[-1].accuracy(self.y),
-			givens={
-				self.x:
-				validation_x[i*self.mini_batch_size: (i+1)*self.mini_batch_size],
-				self.y:
-				validation_y[i*self.mini_batch_size: (i+1)*self.mini_batch_size]
-			})
+
+		#Test theano function
 		test_mb_accuracy = theano.function(
 			[i], self.layers[-1].accuracy(self.y),
 			givens={
@@ -134,50 +118,28 @@ class covnet:
 				self.y:
 				test_y[i*self.mini_batch_size: (i+1)*self.mini_batch_size]
 			})
-		self.test_mb_predictions = theano.function(
-			[i], self.layers[-1].y_out,
-			givens={
-				self.x:
-				test_x[i*self.mini_batch_size: (i+1)*self.mini_batch_size]
-			})
 
-		final_prediction = []
+		#If the test flag is shown test the covnet with the current test set
+		if test:
+			test_accuracy_array = [test_mb_accuracy(j) for j in xrange(num_test_batches)]
+			test_accuracy = np.mean([pair[0] for pair in test_accuracy_array])
 
-		# Do the actual training
-		best_validation_accuracy = 0.0
-		for epoch in xrange(epochs):
-			final_prediction = []
-			for minibatch_index in xrange(num_training_batches):
-				iteration = num_training_batches*epoch+minibatch_index
-				if iteration % 1000 == 0:
-					print("Training mini-batch number {0}".format(iteration))
-				cost_ij = train_mb(minibatch_index)
-				if (iteration+1) % num_training_batches == 0:
+			print('The corresponding test accuracy is {0:.2%}'.format(
+				test_accuracy))
 
-					validation_accuracy_array = [validate_mb_accuracy(j) for j in xrange(num_validation_batches)]
-					validation_accuracy = np.mean([pair[0] for pair in validation_accuracy_array])
+			np.save('results_covnet', test_accuracy_array)
 
-					print("Epoch {0}: validation accuracy {1:.2%}".format(
-						epoch, validation_accuracy))
-					if validation_accuracy >= best_validation_accuracy:
-						print("This is the best validation accuracy to date.")
-						best_validation_accuracy = validation_accuracy
-						best_iteration = iteration
-						if self.test_data:
+		#Else train the network
+		else:
+			for epoch in xrange(epochs):
+				for minibatch_index in xrange(num_training_batches):
+					iteration = num_training_batches*epoch+minibatch_index
+					if iteration % 1000 == 0:
+						print("Training mini-batch number {0}".format(iteration))
+					cost_ij = train_mb(minibatch_index)
 
-							test_accuracy_array = [test_mb_accuracy(j) for j in xrange(num_test_batches)]
-							test_accuracy = np.mean([pair[0] for pair in test_accuracy_array])
+			print("Finished training network.")
 
-							print('The corresponding test accuracy is {0:.2%}'.format(
-								test_accuracy))
-
-		print "Prediction\n"
-		print accuracy_array
-
-		print("Finished training network.")
-		print("Best validation accuracy of {0:.2%} obtained at iteration {1}".format(
-			best_validation_accuracy, best_iteration))
-		print("Corresponding test accuracy of {0:.2%}".format(test_accuracy))
 
 #### Define layer types
 class ConvPoolLayer(object):
@@ -326,18 +288,30 @@ covnet = covnet([
     SoftmaxLayer(n_in=100, n_out=10)], 
     mini_batch_size)
 
-print "Starting Covnet"
-for i in range(0,7):	
-	np.save('covnet2_params_'+str(i), covnet.params)
-	print "training on file" + str(i)
 
-	print "Creating Splits"
+print "Start training Covnet"
+for i in range(0,1):	
 	covnet.create_splits(
 		label_folder="/home/mclaren1/seng/LSIRProject/classifiers/basicDNN/data/imagenetData/label_folder/",
 		image_folder="/home/mclaren1/seng/LSIRProject/classifiers/basicDNN/data/imagenetData/data_folder/",
 		ext=".dat",
-		iteration=i
+		iteration=i,
+		test=False
 	)
 
-	print "Start training"
-	covnet.SGD(60, mini_batch_size, 0.1)  
+	covnet.SGD(60, mini_batch_size, 0.1, test=False)  
+
+#Test the accuracy of the covnet
+np.save('covnet_params_'+str(i), covnet.params)
+
+#Create Test Split
+covnet.create_splits(
+	label_folder="/home/mclaren1/seng/LSIRProject/classifiers/basicDNN/data/imagenetData/label_folder/",
+	image_folder="/home/mclaren1/seng/LSIRProject/classifiers/basicDNN/data/imagenetData/data_folder/",
+	ext=".dat",
+	iteration=(i+1),
+	test=True
+)
+
+#Test the network
+covnet.SGD(60, mini_batch_size, 0.1, test=True)
