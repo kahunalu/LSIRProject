@@ -329,7 +329,7 @@ covnet = covnet([
 
 print "Starting Covnet"
 for i in range(0,8):	
-	np.save('params_'+str(i), covnet.params)
+	np.save('covnet_params_'+str(i), covnet.params)
 	print "training on file" + str(i)
 
 	print "Creating Splits"
