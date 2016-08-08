@@ -68,7 +68,7 @@ class covnet:
 			for i in range(0, length):
 				self.test_data[0].append(imageset[i])
 				self.test_data[1].append(labelset[i])
-			np.save('covnet_test_file', self.test_data)
+			np.save('covnet_imagenet_test_file', self.test_data)
 			self.test_data = shared(self.test_data)
 		else:
 			print "Creating Training  Split"
@@ -107,7 +107,7 @@ class covnet:
 			print('The corresponding test accuracy is {0:.2%}'.format(
 				test_accuracy))
 
-			np.save('results_covnet', test_accuracy_array)
+			np.save('results_covnet_imagenet', test_accuracy_array)
 
 		#Else train the network
 		else:
@@ -305,7 +305,7 @@ for i in range(0,1):
 	covnet.SGD(60, mini_batch_size, 0.1, test=False)  
 
 #Test the accuracy of the covnet
-np.save('covnet_params_'+str(i), covnet.params)
+np.save('covnet_imagenet_params_'+str(i), covnet.params)
 
 #Create Test Split
 covnet.create_splits(
