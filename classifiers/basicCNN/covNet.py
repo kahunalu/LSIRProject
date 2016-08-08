@@ -53,6 +53,13 @@ class covnet:
 		# Create splits
 		length = len(labelset)
 
+		def shared(data):
+			shared_x = theano.shared(
+				np.asarray(data[0], dtype=theano.config.floatX), borrow=True)
+			shared_y = theano.shared(
+				np.asarray(data[1], dtype=theano.config.floatX), borrow=True)
+			return shared_x, T.cast(shared_y, "int32")
+
 		self.training_data, self.test_data = [[],[]],[[],[]]
 
 		#if test iteration create test set
@@ -62,21 +69,13 @@ class covnet:
 				self.test_data[0].append(imageset[i])
 				self.test_data[1].append(labelset[i])
 			np.save('covnet_test_file', self.test_data)
+			self.test_data = shared(self.test_data)
 		else:
-			print "Creating Training Split"
+			print "Creating Training  Split"
 			for i in range(0, length):
 				self.training_data[0].append(imageset[i])
 				self.training_data[1].append(labelset[i])
-
-		def shared(data):
-			shared_x = theano.shared(
-				np.asarray(data[0], dtype=theano.config.floatX), borrow=True)
-			shared_y = theano.shared(
-				np.asarray(data[1], dtype=theano.config.floatX), borrow=True)
-			return shared_x, T.cast(shared_y, "int32")
-
-		#Return splits
-		self.training_data, self.test_data = shared(self.training_data), shared(self.test_data)
+			self.training_data = shared(self.training_data)
 
 	#Train network using mini-batch gradient descent
 	def SGD(self, epochs, mini_batch_size, eta, lmbda=0.0, test=False):
@@ -101,28 +100,18 @@ class covnet:
 		# accuracy in validation and test mini-batches.
 		i = T.lscalar() # mini-batch index
 
-		#Train theano function
-		train_mb = theano.function(
-			[i], cost, updates=updates,
-			givens={
-				self.x:
-				training_x[i*self.mini_batch_size: (i+1)*self.mini_batch_size],
-				self.y:
-				training_y[i*self.mini_batch_size: (i+1)*self.mini_batch_size]
-			})
-
-		#Test theano function
-		test_mb_accuracy = theano.function(
-			[i], self.layers[-1].accuracy(self.y),
-			givens={
-				self.x:
-				test_x[i*self.mini_batch_size: (i+1)*self.mini_batch_size],
-				self.y:
-				test_y[i*self.mini_batch_size: (i+1)*self.mini_batch_size]
-			})
-
 		#If the test flag is shown test the covnet with the current test set
 		if test:
+			#Test theano function
+			test_mb_accuracy = theano.function(
+				[i], self.layers[-1].accuracy(self.y),
+				givens={
+					self.x:
+					test_x[i*self.mini_batch_size: (i+1)*self.mini_batch_size],
+					self.y:
+					test_y[i*self.mini_batch_size: (i+1)*self.mini_batch_size]
+				})
+
 			print "Testing " + str(num_test_batches) + " inputs"
 			test_accuracy_array = [test_mb_accuracy(j) for j in xrange(num_test_batches)]
 			test_accuracy = np.mean([pair[0] for pair in test_accuracy_array])
@@ -134,6 +123,16 @@ class covnet:
 
 		#Else train the network
 		else:
+			#Train theano function
+			train_mb = theano.function(
+				[i], cost, updates=updates,
+				givens={
+					self.x:
+					training_x[i*self.mini_batch_size: (i+1)*self.mini_batch_size],
+					self.y:
+					training_y[i*self.mini_batch_size: (i+1)*self.mini_batch_size]
+				})
+
 			for epoch in xrange(epochs):
 				print "Running epoch #"+str(epoch)+" of "+ str(epochs)
 				for minibatch_index in xrange(num_training_batches):
