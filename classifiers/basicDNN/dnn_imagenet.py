@@ -299,7 +299,7 @@ covnet = covnet([
 
 
 print "Start training Covnet"
-for i in range(0,1):	
+for i in range(0,6):	
 	covnet.create_splits(
 		label_folder="/home/mclaren1/seng/LSIRProject/data/imagenetData/label_folder/",
 		image_folder="/home/mclaren1/seng/LSIRProject/data/imagenetData/data_folder/",
