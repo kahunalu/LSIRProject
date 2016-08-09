@@ -301,8 +301,8 @@ covnet = covnet([
 print "Start training Covnet"
 for i in range(0,6):	
 	covnet.create_splits(
-		label_folder="/home/mclaren1/seng/LSIRProject/data/imagenetData/label_folder/",
-		image_folder="/home/mclaren1/seng/LSIRProject/data/imagenetData/data_folder/",
+		label_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/label_folder/",
+		image_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/data_folder/",
 		ext=".dat",
 		iteration=i,
 		test=False
@@ -315,8 +315,8 @@ np.save('dnn_imagenet_params_'+str(i), covnet.params)
 
 #Create Test Split
 covnet.create_splits(
-	label_folder="/home/mclaren1/seng/LSIRProject/data/imagenetData/label_folder/",
-	image_folder="/home/mclaren1/seng/LSIRProject/data/imagenetData/data_folder/",
+	label_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/label_folder/",
+	image_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/data_folder/",
 	ext=".dat",
 	iteration=(i+1),
 	test=True
