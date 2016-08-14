@@ -106,7 +106,7 @@ class covnet:
 
 			test_accuracy = [test_mb_accuracy(j) for j in xrange(num_test_batches)]
 
-			print test_accuracy
+			np.save("cnn_used_test", np.asarray(test_accuracy))
 
 		#Else train the network
 		else:
@@ -277,7 +277,10 @@ DEFINE THE CONV NEURAL NETWORK
 mini_batch_size = 100
 
 covnet = covnet([
-	FullyConnectedLayer(n_in=(1*460*614), n_out=100),
+	ConvPoolLayer(image_shape=(mini_batch_size, 1, 460, 614),
+					filter_shape=(40, 1, 11, 11),
+					poolsize=(2, 2)),
+	FullyConnectedLayer(n_in=(1*225*302), n_out=100),
 	SoftmaxLayer(n_in=100, n_out=10)], 
 	mini_batch_size)
 
@@ -286,7 +289,7 @@ print "Start training Covnet"
 for i in range(0,6):
 	covnet.create_splits(
 		label_folder="/home/mclaren1/seng/LSIRProject/data/used/label_folder/",
-		image_folder="/home/mclaren1/seng/LSIRProject/data/used/data_folder/",
+		image_folder="/home/mclaren1/seng/LSIRProject/data/used/bw_data_folder/",
 		ext=".dat",
 		iteration=i,
 		test=False
@@ -300,7 +303,7 @@ np.save('covnet_imagenet_params_'+str(i), covnet.params)
 #Create Test Split
 covnet.create_splits(
 	label_folder="/home/mclaren1/seng/LSIRProject/data/used/label_folder/",
-	image_folder="/home/mclaren1/seng/LSIRProject/data/used/data_folder/",
+	image_folder="/home/mclaren1/seng/LSIRProject/data/used/bw_data_folder/",
 	ext=".dat",
 	iteration=(i+1),
 	test=True
