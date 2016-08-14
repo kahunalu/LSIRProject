@@ -280,7 +280,7 @@ covnet = covnet([
 	ConvPoolLayer(image_shape=(mini_batch_size, 1, 460, 614),
 					filter_shape=(40, 1, 11, 11),
 					poolsize=(2, 2)),
-	FullyConnectedLayer(n_in=(1*225*302), n_out=100),
+	FullyConnectedLayer(n_in=(40*225*302), n_out=100),
 	SoftmaxLayer(n_in=100, n_out=10)], 
 	mini_batch_size)
 
