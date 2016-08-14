@@ -276,6 +276,8 @@ DEFINE THE CONV NEURAL NETWORK
 '''
 mini_batch_size = 100
 
+print "Begin imagenet DNN"
+
 covnet = covnet([
 	ConvPoolLayer(image_shape=(mini_batch_size, 1, 460, 614),
 					filter_shape=(48, 1, 7, 7),

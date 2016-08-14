@@ -274,6 +274,9 @@ def dropout_layer(layer, p_dropout):
 '''
 DEFINE THE CONV NEURAL NETWORK
 '''
+
+print "Begin imagenet CNN"
+
 mini_batch_size = 100
 
 covnet = covnet([

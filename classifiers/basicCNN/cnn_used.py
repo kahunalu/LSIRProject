@@ -274,6 +274,9 @@ def dropout_layer(layer, p_dropout):
 '''
 DEFINE THE CONV NEURAL NETWORK
 '''
+
+print "Begin used CNN"
+
 mini_batch_size = 100
 
 covnet = covnet([
@@ -286,7 +289,7 @@ covnet = covnet([
 
 
 print "Start training Covnet"
-for i in range(0,6):
+for i in range(0,7):
 	covnet.create_splits(
 		label_folder="/home/mclaren1/seng/LSIRProject/data/used/label_folder/",
 		image_folder="/home/mclaren1/seng/LSIRProject/data/used/bw_data_folder/",
@@ -300,12 +303,12 @@ for i in range(0,6):
 #Test the accuracy of the covnet
 np.save('covnet_imagenet_params_'+str(i), covnet.params)
 
-#Create Test Split
+#Create Test Split for imagenet test split #6
 covnet.create_splits(
-	label_folder="/home/mclaren1/seng/LSIRProject/data/used/label_folder/",
-	image_folder="/home/mclaren1/seng/LSIRProject/data/used/bw_data_folder/",
+	label_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/label_folder/",
+	image_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/bw_data_folder/",
 	ext=".dat",
-	iteration=(i+1),
+	iteration=6,
 	test=True
 )
 
