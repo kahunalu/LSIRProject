@@ -1,5 +1,6 @@
 # Python Libraries
 import math
+from random import randint
 
 # Third-party libraries
 import numpy as np
@@ -47,13 +48,9 @@ class covnet:
 		self.output = self.layers[-1].output
 		self.output_dropout = self.layers[-1].output_dropout
 
-	def create_splits(self, label_folder, image_folder, ext, iteration, test):
+	def create_splits(self, label_folder, image_folder, ext, iteration, test, file_id):
 		imageset = np.load(image_folder+"images"+str(iteration)+ext)
 		labelset = np.load(label_folder+"labels"+str(iteration)+ext)
-
-		print "DONE DONE DONE DONE "
-		print len(imageset)
-		print len(labelset)
 
 		# Create splits
 		length = len(imageset)
@@ -73,8 +70,7 @@ class covnet:
 			for i in range(0, length):
 				self.test_data[0].append(imageset[i])
 				self.test_data[1].append(labelset[i])
-			np.save('dnnnet_imagenet_test_file', self.test_data)
-			print self.test_data
+			np.save('dnn_used_test_file'+str(file_id), self.test_data)
 			self.test_data = shared(self.test_data)
 		else:
 			print "Creating Training  Split"
@@ -84,7 +80,7 @@ class covnet:
 			self.training_data = shared(self.training_data)
 
 	#Train network using mini-batch gradient descent
-	def SGD(self, epochs, mini_batch_size, eta, lmbda=0.0, test=False):
+	def SGD(self, epochs, mini_batch_size, eta, lmbda=0.0, test=False, file_id=0):
 
 		# define functions to train a mini-batch, and to compute the
 		# accuracy in validation and test mini-batches.
@@ -106,7 +102,7 @@ class covnet:
 
 			test_accuracy = [test_mb_accuracy(j) for j in xrange(num_test_batches)]
 
-			np.save("dnn_used_test", np.asarray(test_accuracy))
+			np.save("dnn_used_predictions"+str(file_id), np.asarray(test_accuracy))
 
 		#Else train the network
 		else:
@@ -275,9 +271,10 @@ def dropout_layer(layer, p_dropout):
 DEFINE THE CONV NEURAL NETWORK
 '''
 
-print "Begin used DNN"
+print "Begin used CNN"
 
 mini_batch_size = 100
+file_id = randint(0,1000)
 
 covnet = covnet([
 	ConvPoolLayer(image_shape=(mini_batch_size, 1, 460, 614),
@@ -293,9 +290,9 @@ covnet = covnet([
 	SoftmaxLayer(n_in=100, n_out=10)], 
 	mini_batch_size)
 
-
-print "Start training Covnet"
-for i in range(0,6):
+#Start training used net on the 7 used dataset splits
+print "Start training CNN"
+for i in range(0,7):
 	covnet.create_splits(
 		label_folder="/home/mclaren1/seng/LSIRProject/data/used/label_folder/",
 		image_folder="/home/mclaren1/seng/LSIRProject/data/used/bw_data_folder/",
@@ -306,10 +303,7 @@ for i in range(0,6):
 
 	covnet.SGD(1, mini_batch_size, 0.1, test=False)
 
-#Test the accuracy of the covnet
-np.save('dnnnet_imagenet_params_'+str(i), covnet.params)
-
-#Create Test Split for imagenet
+#Test on the image net test split
 covnet.create_splits(
 	label_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/label_folder/",
 	image_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/bw_data_folder/",
@@ -320,3 +314,11 @@ covnet.create_splits(
 
 #Test the network
 covnet.SGD(0, mini_batch_size, 0.1, test=True)
+
+#Save the parameters of the network
+params_split_length = len(covnet.params)/4
+
+np.save("dnn_used_params_pt1"+str(file_id), covnet.params[:(params_split_length)])
+np.save("dnn_used_params_pt2"+str(file_id), covnet.params[(params_split_length):(2*params_split_length)])
+np.save("dnn_used_params_pt3"+str(file_id), covnet.params[(2*params_split_length):(3*params_split_length)])
+np.save("dnn_used_params_pt4"+str(file_id), covnet.params[(3*params_split_length):(4*params_split_length)])
