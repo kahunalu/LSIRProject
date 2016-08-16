@@ -292,7 +292,8 @@ for i in range(0,7):
 		image_folder="/home/mclaren1/seng/LSIRProject/data/used/bw_data_folder/",
 		ext=".dat",
 		iteration=i,
-		test=False
+		test=False,
+		file_id=file_id
 	)
 
 	covnet.SGD(1, mini_batch_size, 0.1, test=False)
@@ -303,7 +304,8 @@ covnet.create_splits(
 	image_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/bw_data_folder/",
 	ext=".dat",
 	iteration=6,
-	test=True
+	test=True,
+	file_id=file_id
 )
 
 #Test the network
