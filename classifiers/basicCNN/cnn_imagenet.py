@@ -278,10 +278,10 @@ mini_batch_size = 25
 file_id = randint(0,1000)
 
 covnet = covnet([
-	ConvPoolLayer(image_shape=(mini_batch_size, 1, 460, 614),
-					filter_shape=(40, 1, 25, 25),
+	ConvPoolLayer(image_shape=(mini_batch_size, 1, 224, 224),
+					filter_shape=(48, 1, 11, 11),
 					poolsize=(2, 2)),
-	FullyConnectedLayer(n_in=(40*218*295), n_out=100),
+	FullyConnectedLayer(n_in=(48*107*107), n_out=100),
 	SoftmaxLayer(n_in=100, n_out=10)], 
 	mini_batch_size)
 
@@ -290,7 +290,7 @@ print "Start training Covnet"
 for i in range(0,6):
 	covnet.create_splits(
 		label_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/label_folder/",
-		image_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/bw_data_folder/",
+		image_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/ksh_data_folder/",
 		ext=".dat",
 		iteration=i,
 		test=False,
@@ -302,7 +302,7 @@ for i in range(0,6):
 #Test the network on imagenet dataset 6
 covnet.create_splits(
 	label_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/label_folder/",
-	image_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/bw_data_folder/",
+	image_folder="/home/mclaren1/seng/LSIRProject/data/imagenet/ksh_data_folder/",
 	ext=".dat",
 	iteration=6,
 	test=True,
