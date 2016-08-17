@@ -53,7 +53,7 @@ class covnet:
 		self.output_dropout = self.layers[-1].output_dropout
 
 	#Create random splits
-	def _split_sets(self, dataset):
+	def _split_sets(self):
 		dataset = np.load("~/seng/LSIRProject/basicCovnet/imagenet/ksh_imagenet_data.dat")
 		labels = np.load("~/seng/LSIRProject/basicCovnet/imagenet/ksh_imagenet_labels.dat")
 
