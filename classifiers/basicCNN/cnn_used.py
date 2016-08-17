@@ -80,7 +80,7 @@ class covnet:
 			self.training_data = shared(self.training_data)
 
 	#Train network using mini-batch gradient descent
-	def SGD(self, epochs, mini_batch_size, eta, lmbda=0.0, test=False, file_id=0):
+	def SGD(self, epochs, mini_batch_size, eta, lmbda=0.0, test=False, file_id=0, cost=None):
 
 		# define functions to train a mini-batch, and to compute the
 		# accuracy in validation and test mini-batches.
@@ -133,6 +133,7 @@ class covnet:
 				print "Running epoch #"+str(epoch)+" of "+ str(epochs)
 				for minibatch_index in xrange(num_training_batches):
 					cost_ij = train_mb(minibatch_index)
+					print cost_ij
 
 			print("Finished training network.")
 
@@ -273,14 +274,14 @@ DEFINE THE CONV NEURAL NETWORK
 
 print "Begin used CNN"
 
-mini_batch_size = 100
+mini_batch_size = 25
 file_id = randint(0,1000)
 
 covnet = covnet([
 	ConvPoolLayer(image_shape=(mini_batch_size, 1, 460, 614),
-					filter_shape=(40, 1, 11, 11),
+					filter_shape=(40, 1, 25, 25),
 					poolsize=(2, 2)),
-	FullyConnectedLayer(n_in=(40*225*302), n_out=100),
+	FullyConnectedLayer(n_in=(40*218*295), n_out=100),
 	SoftmaxLayer(n_in=100, n_out=10)], 
 	mini_batch_size)
 
@@ -296,7 +297,7 @@ for i in range(0,7):
 		file_id=file_id
 	)
 
-	covnet.SGD(1, mini_batch_size, 0.1, test=False)
+	covnet.SGD(2, mini_batch_size, 0.1, test=False)
 
 #Test on the image net test split
 covnet.create_splits(
@@ -310,11 +311,3 @@ covnet.create_splits(
 
 #Test the network
 covnet.SGD(0, mini_batch_size, 0.1, test=True)
-
-#Save the parameters of the network
-params_split_length = len(covnet.params)/4
-
-np.save("cnn_used_params_pt1"+str(file_id), covnet.params[:(params_split_length)])
-np.save("cnn_used_params_pt2"+str(file_id), covnet.params[(params_split_length):(2*params_split_length)])
-np.save("cnn_used_params_pt3"+str(file_id), covnet.params[(2*params_split_length):(3*params_split_length)])
-np.save("cnn_used_params_pt4"+str(file_id), covnet.params[(3*params_split_length):(4*params_split_length)])
