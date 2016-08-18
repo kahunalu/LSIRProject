@@ -2,6 +2,7 @@
 import cPickle
 import math
 from random import shuffle
+from random import randint
 
 # Third-party libraries
 import numpy as np
@@ -54,22 +55,23 @@ class covnet:
 
 	#Create random splits
 	def _split_sets(self):
-		dataset = np.load("~/seng/LSIRProject/basicCovnet/used/ksh_imagenet_data.dat")
-		labels = np.load("~/seng/LSIRProject/basicCovnet/used/ksh_imagenet_labels.dat")
+		dataset = np.load("/home/mclaren1/seng/LSIRProject/classifiers/basicCovnet/used/ksh_shuffle_data.dat")
+		labels = np.load("/home/mclaren1/seng/LSIRProject/classifiers/basicCovnet/used/ksh_shuffle_labels.dat")
+
+		imagenet_dataset = np.load("/home/mclaren1/seng/LSIRProject/classifiers/basicCovnet/imagenet/ksh_imagenet_data.dat")
+                imagenet_labels = np.load("/home/mclaren1/seng/LSIRProject/classifiers/basicCovnet/imagenet/ksh_imagenet_labels.dat")
 
 		# Create splits
 		length = len(dataset)
-		__training_split		= dataset[0:int(length*0.8)]
-		__test_split			= dataset[int(length*0.8):int(length*0.9)]
-		__validation_split		= dataset[int(length*0.9):length]
+		imagenet_length = len(imagenet_dataset)
 
 		__training_data, __test_data, __validation_data = [[],[]],[[],[]],[[],[]]
 
-		__training_data[0] = dataset[0:int(length*0.8)]
-		__training_data[1] = labels[0:int(length*0.8)]
+		__training_data[0] = dataset[0:int(length*0.9)]
+		__training_data[1] = labels[0:int(length*0.9)]
 
-		__test_data[0] = dataset[int(length*0.8):int(length*0.9)]
-		__test_data[1] = labels[int(length*0.8):int(length*0.9)]
+		__test_data[0] = imagenet_dataset[int(imagenet_length*0.8):(imagenet_length*0.9)]
+		__test_data[1] = imagenet_labels[int(imagenet_length*0.8):(imagenet_length*0.9)]
 
 		__validation_data[0] = dataset[int(length*0.9):length]
 		__validation_data[1] = labels[int(length*0.9):length]
@@ -171,8 +173,8 @@ class covnet:
 
 
 							test_accuracy = np.mean([pair[0] for pair in test_accuracy_array])
-							np.save("predictions_list", np.asarray([pair[1] for pair in test_accuracy_array]))
-							np.save("test_list", np.asarray([pair[2] for pair in test_accuracy_array]))
+							np.save(str(test_accuracy)+"used_predictions_list"+str(randint(1,100)), np.asarray([pair[1] for pair in test_accuracy_array]))
+							np.save(str(test_accuracy)+"used_test_list"+str(randint(1,100)), np.asarray([pair[2] for pair in test_accuracy_array]))
 
 							print('The corresponding test accuracy is {0:.2%}'.format(
 								test_accuracy))

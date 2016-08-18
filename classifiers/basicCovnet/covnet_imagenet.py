@@ -2,6 +2,7 @@
 import cPickle
 import math
 from random import shuffle
+from random import randint
 
 # Third-party libraries
 import numpy as np
@@ -54,8 +55,8 @@ class covnet:
 
 	#Create random splits
 	def _split_sets(self):
-		dataset = np.load("~/seng/LSIRProject/basicCovnet/imagenet/ksh_imagenet_data.dat")
-		labels = np.load("~/seng/LSIRProject/basicCovnet/imagenet/ksh_imagenet_labels.dat")
+		dataset = np.load("/home/mclaren1/seng/LSIRProject/classifiers/basicCovnet/imagenet/ksh_imagenet_data.dat")
+		labels = np.load("/home/mclaren1/seng/LSIRProject/classifiers/basicCovnet/imagenet/ksh_imagenet_labels.dat")
 
 		# Create splits
 		length = len(dataset)
@@ -171,8 +172,8 @@ class covnet:
 
 
 							test_accuracy = np.mean([pair[0] for pair in test_accuracy_array])
-							np.save("predictions_list", np.asarray([pair[1] for pair in test_accuracy_array]))
-							np.save("test_list", np.asarray([pair[2] for pair in test_accuracy_array]))
+							np.save(str(test_accuracy)+"imagenet_predictions_list"+str(randint(1,100)), np.asarray([pair[1] for pair in test_accuracy_array]))
+							np.save(str(test_accuracy)+"imagenet_test_list"+str(randint(1,100)), np.asarray([pair[2] for pair in test_accuracy_array]))
 
 							print('The corresponding test accuracy is {0:.2%}'.format(
 								test_accuracy))
