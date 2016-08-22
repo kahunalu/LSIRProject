@@ -73,8 +73,8 @@ class covnet:
 		__test_data[0] = imagenet_dataset[int(imagenet_length*0.8):(imagenet_length*0.9)]
 		__test_data[1] = imagenet_labels[int(imagenet_length*0.8):(imagenet_length*0.9)]
 
-		__validation_data[0] = dataset[int(length*0.9):length]
-		__validation_data[1] = labels[int(length*0.9):length]
+		__validation_data[0] = imagenet_dataset[int(imagenet_length*0.9):imagenet_length]
+		__validation_data[1] = imagenet_labels[int(imagenet_length*0.9):imagenet_length]
 
 		def shared(data):
 			shared_x = theano.shared(
