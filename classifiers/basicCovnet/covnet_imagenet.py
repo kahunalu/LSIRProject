@@ -196,7 +196,7 @@ class ConvPoolLayer(object):
 	"""
 
 	def __init__(self, filter_shape, image_shape, poolsize=(2, 2),
-				 activation_fn=sigmoid):
+				 activation_fn=ReLU):
 		"""`filter_shape` is a tuple of length 4, whose entries are the number
 		of filters, the number of input feature maps, the filter height, and the
 		filter width.
@@ -242,7 +242,7 @@ class ConvPoolLayer(object):
 
 class FullyConnectedLayer(object):
 
-	def __init__(self, n_in, n_out, activation_fn=sigmoid, p_dropout=0.0):
+	def __init__(self, n_in, n_out, activation_fn=ReLU, p_dropout=0.0):
 		self.n_in = n_in
 		self.n_out = n_out
 		self.activation_fn = activation_fn
@@ -315,13 +315,13 @@ def dropout_layer(layer, p_dropout):
 	mask = srng.binomial(n=1, p=1-p_dropout, size=layer.shape)
 	return layer*T.cast(mask, theano.config.floatX)
 
-mini_batch_size = 100
+mini_batch_size = 500
 
 covnet = covnet([
 	ConvPoolLayer(image_shape=(mini_batch_size, 1, 224, 224), 
-				  filter_shape=(48, 1, 10, 10),
+				  filter_shape=(96, 1, 10, 10),
 				  poolsize=(5, 5)),
-	FullyConnectedLayer(n_in=48*43*43, n_out=100),
+	FullyConnectedLayer(n_in=96*43*43, n_out=100),
 	SoftmaxLayer(n_in=100, n_out=10)], mini_batch_size)
 
 print "Starting Covnet"
@@ -330,4 +330,4 @@ print "Creating Splits"
 covnet.create_splits()
 
 print "Start training"
-covnet.SGD(60, mini_batch_size, 0.1)  
+covnet.SGD(10, mini_batch_size, 0.2)  
